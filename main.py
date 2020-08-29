@@ -8,6 +8,7 @@ from ulauncher.api.shared.action.CopyToClipboardAction import CopyToClipboardAct
 import requests
 import subprocess
 import os
+import logging
 
 #Proxies = {"http": "http://127.0.0.1:7890", "https": "http://127.0.0.1:7890"}
 
@@ -21,6 +22,7 @@ class Extension(Extension):
 
 class KeywordQueryEventListener(EventListener):
     def on_event(self, event, extension):
+        logger = logging.getLogger(__name__)
         query = event.get_argument() or str()
         if len(query.strip()) == 0:
             return RenderResultListAction([
@@ -31,14 +33,17 @@ class KeywordQueryEventListener(EventListener):
         else:
             try:
                 data = subprocess.Popen(["aurman", "-Ss", str(query)], stdout = subprocess.PIPE)
+                logger.info("aurman package found")
             except FileNotFoundError:
                 pass
             try:
                 data = subprocess.Popen(["yay", "-Ss", str(query)], stdout = subprocess.PIPE)
+                logger.info("yay package found")
             except FileNotFoundError:
                 pass
             try:
                 data = subprocess.Popen(["apt", "search", str(query)], stdout = subprocess.PIPE)
+                logger.info("apt package found")
             except FileNotFoundError:
                 pass
             cmd = str(data.communicate())
@@ -73,6 +78,7 @@ class KeywordQueryEventListener(EventListener):
             del packages[len(packages) - 1]
 
             items = []
+            logger.info(packages)
             for q in packages:
                 if q[2] == "aur":
                     items.append(ExtensionResultItem(icon='icon.png',
